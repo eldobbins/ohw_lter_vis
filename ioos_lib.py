@@ -38,6 +38,9 @@ class DataScraper():
         self.target = target
         self.models = models_only
 
+        self.make_bbox()
+        self.make_fes_filter()
+
     def draw_roi(self):
         '''
         Helper function for seeing the region of interest being queried
@@ -57,6 +60,28 @@ class DataScraper():
     def make_bbox(self):
         crs = 'urn:ogc:def:crs:OGC:1.3:CRS84'
         self.bbox_crs = fes.BBox([self.roi[0], self.roi[2], self.roi[1], self.roi[3]], crs=crs)
+
+    def adjust_roi(self, min_lon=None, max_lon=None, min_lat=None, max_lat=None):
+        if min_lon is not None:
+            self.min_lon = min_lon
+        if max_lon is not None:
+            self.max_lon = max_lon
+        if min_lat is not None:
+            self.min_lat = min_lat
+        if max_lat is not None:
+            self.max_lat = max_lat
+        self.roi = [self.min_lon, self.max_lon, self.min_lat, self.max_lat]
+        self.make_bbox()
+        self.make_fes_filter()
+
+    def update_date(self, new_start, new_end):
+        self.start = new_start
+        self.stop = new_end
+        self.make_fes_filter()
+
+    def update_labels(self, new_labels):
+        self.target = new_labels
+        self.make_fes_filter()
 
     def make_fes_filter(self):
         begin, end = fes_date_filter(self.start, self.stop)
@@ -78,6 +103,10 @@ class DataScraper():
         self.records= '\n'.join(self.csw.records.keys())
         print('Found {} records.\n'.format(len(self.csw.records.keys())))
 
+    def pretty_print_records(self):
+        for rec in self.csw.records.keys():
+            print(str(rec)+'\n')
+
     def select_record(self):
         #print the unique record list
         #allow user to select the instrument(s) of interest
@@ -95,14 +124,25 @@ class DataScraper():
         df['geolink'] = [sniff_link(url) for url in df['url']]
         self.df = df
 
-    def get_observations(self):
-        sos_urls = [fix_series(url, self.start, self.stop) for url in self.df.loc[self.df['geolink'] == 'OGC:SOS', 'url'] if 'GetObservation' in url and 'text/csv' in url and self.target[-1] in url]
+    def get_observations(self, silent=True):
+        sos_urls = [fix_series(url, self.start, self.stop) for url in self.df.url.values if 'GetObservation' in url and 'text/csv' in url]
         self.observations = []
         for url in sos_urls:
+            if silent == False:
+                print('Processing: '+str(url))
             try:
                 self.observations.append(pd.read_csv(url, index_col='date_time', parse_dates=True))
             except:
                 pass
+        if len(self.observations) == 0:
+            print('Unfortunately, no valid data targets have been found.')
+            return
+
+        obs_df = pd.DataFrame()
+        for df in self.observations:
+            obs_df = obs_df.append(df)
+        obs_df['time'] = pd.to_datetime(obs_df.index, infer_datetime_format=True)
+        return obs_df
 
     def plot_observations(self, value):
         with matplotlib.style.context('seaborn-notebook'):
@@ -190,7 +230,7 @@ def fetch_labels(keyword):
     if keyword == 'temperature':
         return ['sea_water_temperature','sea_surface_temperature', 'sea_water_potential_temperature','equivalent_potential_temperature','sea_water_conservative_temperature','pseudo_equivalent_potential_temperature']
     elif keyword == 'salinity':
-        return ['seat_water_salinity', 'sea_surface_salinity', 'sea_water_absolute_salinity', 'sea_water_cox_salinity', 'sea_water_knudsen_salinity', 'sea_water_practical_salinity', 'sea_water_preformed_salinity']
+        return ['sea_water_salinity', 'sea_surface_salinity', 'sea_water_absolute_salinity', 'sea_water_cox_salinity', 'sea_water_knudsen_salinity', 'sea_water_practical_salinity', 'sea_water_preformed_salinity']
     elif keyword == 'oxygen':
         return ['volume_fraction_of_oxygen_in_sea_water', 'apparent_oxygen_utilization', 'fractional_saturation_of_oxygen_in_sea_water', 'mass_concentration_of_oxygen_in_sea_water', 'mole_concentration_of_dissolved_molecular_oxygen_in_sea_water', 'moles_of_oxygen_per_unit_mass_in_sea_water', 'photolysis_rate_of_molecular_oxygen', 'surface_downward_mole_flux_of_molecular_oxygen']
     elif keyword == 'co2':
@@ -199,7 +239,7 @@ def fetch_labels(keyword):
         return ['partial_pressure_of_methane_in_sea_water','atmosphere_mass_content_of_methane','atmosphere_mole_content_of_methane','atmosphere_moles_of_methane']
 
 def fetch_dates(start_year, start_month, start_day, duration):
-    start_date = datetime.datetime(year=start_year, month=start_month, day=start_day)
+    start_date = datetime(year=start_year, month=start_month, day=start_day)
     end_date = start_date + timedelta(days=duration)
     return start_date, end_date
 
