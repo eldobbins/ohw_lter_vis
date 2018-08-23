@@ -5,7 +5,7 @@ API
 Classes
 -------
 
-.. currentmodule:: shablona
+.. currentmodule:: ohw_lter_vis
 
 .. autosummary::
    :template: class.rst

@@ -1,7 +1,7 @@
 [run]
 branch = True
-source = shablona/*
-include = shablona/*
+source = ohw_lter_vis/*
+include = ohw_lter_vis/*
 omit = */setup.py
 [report]
-include = shablona/*
+include = ohw_lter_vis/*
