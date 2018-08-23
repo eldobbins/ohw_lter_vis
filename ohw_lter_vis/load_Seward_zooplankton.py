@@ -15,13 +15,15 @@ def make_zooplankton_dataframe(year=None):
     """Will collect the CSV file, clean it, and fit it into a pandas DataFrame
        for use in further visualization.
        
-       Input:
+       Input
+       -----
            year = int (optional)    Limit the return dataframe to a single year
                                     Must be in the 2012 - 2016 timeframe
            
                       
-       Returns:
-           pandas.DataFrame()       The cleaned CSV file of zooplankton abundance
+       Returns
+       -------
+           m : pandas.DataFrame       The cleaned CSV file of zooplankton abundance
            
            
     """
