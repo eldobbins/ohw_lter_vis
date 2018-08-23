@@ -10,7 +10,7 @@ a datetime column for future alignment with environmental data.
 import pandas as pd
 from datetime import datetime
 
-def load_zooplankton(infilename='https://workspace.aoos.org/published/file/6c544f8c-6662-4298-bdcf-52029d113c61/Seward_ZooData_Calvet_%202012-2016_final.csv',):
+def make_zooplankton_dataframe(infilename='https://workspace.aoos.org/published/file/6c544f8c-6662-4298-bdcf-52029d113c61/Seward_ZooData_Calvet_%202012-2016_final.csv',):
     
     zooplankton_data = pd.read_csv(infilename, header=0, index_col=0)
 
