@@ -29,7 +29,7 @@ def make_zooplankton_dataframe(year=None):
     """
        
     infilename= unicode('https://workspace.aoos.org/published/file/6c544f8c-6662-4298-bdcf-52029d113c61/Seward_ZooData_Calvet_2012-2016_final.csv', 'utf-8')
-    zooplankton_data = pd.read_csv(infilename, header=0, index_col=0)
+    zooplankton_data = pd.read_csv(infilename, header=0, index_col=0, encoding='latin_1')
     
     #trim off the excess columns that may appear due the CSV formatting
     keep_columns = zooplankton_data.columns[:32]
