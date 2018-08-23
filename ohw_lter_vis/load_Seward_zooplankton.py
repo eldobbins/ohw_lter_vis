@@ -17,6 +17,7 @@ def make_zooplankton_dataframe(year=None):
        
        Input:
            year = int (optional)    Limit the return dataframe to a single year
+                                    Must be in the 2012 - 2016 timeframe
            
                       
        Returns:
@@ -25,27 +26,30 @@ def make_zooplankton_dataframe(year=None):
            
     """
     
-
-    infilename='https://workspace.aoos.org/published/file/6c544f8c-6662-4298-bdcf-52029d113c61/Seward_ZooData_Calvet_%202012-2016_final.csv'
-    zooplankton_data = pd.read_csv(infilename, header=0, index_col=0)
-    
-    #trim off the excess columns that may appear due the CSV formatting
-    keep_columns = zooplankton_data.columns[:32]
-    keep_columns = keep_columns.drop('Date-Time')
-    keep_columns
-    zooplankton_data_trimmed = pd.DataFrame(zooplankton_data, columns=keep_columns)
-    zooplankton_data_trimmed.rename(columns={'Latitude (degrees N)': 'latitude'})
-    zooplankton_data_trimmed.rename(columns={'Longitude (degrees W)': 'longitude'})
-    #create the datetime column for merging with environmental/other datasets
-    zooplankton_data_trimmed['time'] = [datetime(
-                                        x[1]['Year'], 
-                                        x[1]['Month'], 
-                                        x[1]['Day'], 
-                                        int(x[1]['Time (hh:mm:ss AM/PM)'].split(':')[0]), 
-                                        int(x[1]['Time (hh:mm:ss AM/PM)'].split(':')[1]),
-                                        ) for x in zooplankton_data_trimmed.iterrows()]
-    if year:
-        return zooplankton_data_trimmed.groupby('Year').get_group(int(year))
+    if 2012 <= year <= 2016:
+        infilename='https://workspace.aoos.org/published/file/6c544f8c-6662-4298-bdcf-52029d113c61/Seward_ZooData_Calvet_%202012-2016_final.csv'
+        zooplankton_data = pd.read_csv(infilename, header=0, index_col=0)
+        
+        #trim off the excess columns that may appear due the CSV formatting
+        keep_columns = zooplankton_data.columns[:32]
+        keep_columns = keep_columns.drop('Date-Time')
+        keep_columns
+        zooplankton_data_trimmed = pd.DataFrame(zooplankton_data, columns=keep_columns)
+        zooplankton_data_trimmed.rename(columns={'Latitude (degrees N)': 'latitude'})
+        zooplankton_data_trimmed.rename(columns={'Longitude (degrees W)': 'longitude'})
+        #create the datetime column for merging with environmental/other datasets
+        zooplankton_data_trimmed['time'] = [datetime(
+                                            x[1]['Year'], 
+                                            x[1]['Month'], 
+                                            x[1]['Day'], 
+                                            int(x[1]['Time (hh:mm:ss AM/PM)'].split(':')[0]), 
+                                            int(x[1]['Time (hh:mm:ss AM/PM)'].split(':')[1]),
+                                            ) for x in zooplankton_data_trimmed.iterrows()]
+        if year:
+            return zooplankton_data_trimmed.groupby('Year').get_group(int(year))
+        else:
+            return zooplankton_data_trimmed
     else:
-        return zooplankton_data_trimmed
+        print('That year is not included in the dataset')
+        return None
 
