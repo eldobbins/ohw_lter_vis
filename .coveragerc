@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = ohw_lter_vis/*
+include = ohw_lter_vis/*
+omit = */setup.py
+[report]
+include = ohw_lter_vis/*
