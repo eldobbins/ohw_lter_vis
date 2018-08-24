@@ -24,6 +24,9 @@ from itertools import cycle
 import altair as alt
 from netCDF4 import Dataset
 import gridgeo
+import copy
+import xarray as xr
+import cartopy.crs as ccrs
 
 class DataScraper():
     '''
@@ -192,22 +195,25 @@ class DataScraper():
             self.grids.update({title: grid})
         print(self.grids)
 
-    def open_models(self):
+    def open_models(self, param_of_interest='salt', date_of_interest=None):
+        models = []
+        if date_of_interest is None:
+            date_of_interest = self.start
+
         for url in self.model_urls:
             try:
                 mod = xr.open_dataset(url)
             except:
                 continue
-
-            coords = mod.Coordinates
-            if 'salt' in coords or 'salinity' in coords or 'temperature' in coords:
-                pass
-            else:
-                continue
-
             
+            if param_of_interest in mod.keys() and np.datetime64(date_of_interest) in mod.time.values:
+                models.append(mod[param_of_interest].isel(time=np.where(mod.time.values == np.datetime64(date_of_interest))[0], s_rho=-1))
 
-
+        if len(models) == 0:
+            print('Sorry, your criteria could not be met. Try adjusting your date or target!')
+            return
+        else:
+            return models
 
 def fix_series(url, start, stop):
     url_split = re.split('[&?]', url)
