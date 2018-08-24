@@ -207,7 +207,10 @@ class DataScraper():
                 continue
             
             if param_of_interest in mod.keys() and np.datetime64(date_of_interest) in mod.time.values:
-                models.append(mod[param_of_interest].isel(time=np.where(mod.time.values == np.datetime64(date_of_interest))[0], s_rho=-1))
+                if 's_rho' in mod.keys():
+                    models.append(mod[param_of_interest].isel(time=np.where(mod.time.values == np.datetime64(date_of_interest))[0], s_rho=-1))
+                elif 'depth' in mod.keys():
+                    models.append(mod[param_of_interest].isel(time=np.where(mod.time.values == np.datetime64(date_of_interest))[0], depth=0))
 
         if len(models) == 0:
             print('Sorry, your criteria could not be met. Try adjusting your date or target!')
