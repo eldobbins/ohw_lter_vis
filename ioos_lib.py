@@ -162,6 +162,8 @@ class DataScraper():
 
     def get_models(self):
         self.dap_urls = []
+        self.grids = {}
+        self.model_urls = []
 
         for i, df_row in self.df.iterrows():
             row = df_row.to_dict()
@@ -170,34 +172,41 @@ class DataScraper():
             if row['scheme'] == 'OPeNDAP:OPeNDAP' or 'dodsC' in url:
                 if not '.html' in url:
                     self.dap_urls.append(url)
-        
-        print(len(self.dap_urls))
-        self.grids = {}
-        self.good_urls = []
+    
         for url in self.dap_urls:
             try:
                 nc = Dataset(url)
             except:
-                # print(f'  - Could not read {url} as OPeNDAP endpoint.')
                 continue
-
             try:
                 temp = nc.get_variables_by_attributes(standard_name=lambda x: x in self.target)[0]
                 standard_name = temp.standard_name
             except:
-                print(url)
                 continue
-
             try:
                 grid = gridgeo.GridGeo(nc, standard_name=standard_name)
                 title = getattr(nc, 'title', url)
-                self.good_urls.append(url)
-                # print(f'{url}: {title}')
+                self.model_urls.append(url)
             except Exception:
-                # print(f'  - Could not get grid for {url}')
                 continue
             self.grids.update({title: grid})
         print(self.grids)
+
+    def open_models(self):
+        for url in self.model_urls:
+            try:
+                mod = xr.open_dataset(url)
+            except:
+                continue
+
+            coords = mod.Coordinates
+            if 'salt' in coords or 'salinity' in coords or 'temperature' in coords:
+                pass
+            else:
+                continue
+
+            
+
 
 
 def fix_series(url, start, stop):
