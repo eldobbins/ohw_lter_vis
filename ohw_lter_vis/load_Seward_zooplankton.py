@@ -36,8 +36,8 @@ def make_zooplankton_dataframe(year=None):
     keep_columns = keep_columns.drop('Date-Time')
     keep_columns
     zooplankton_data_trimmed = pd.DataFrame(zooplankton_data, columns=keep_columns)
-    zooplankton_data_trimmed.rename(columns={'Latitude (degrees N)': 'latitude'})
-    zooplankton_data_trimmed.rename(columns={'Longitude (degrees W)': 'longitude'})
+    zooplankton_data_trimmed.rename(columns={'Latitude (degrees N)': 'latitude'}, inplace=True)
+    zooplankton_data_trimmed.rename(columns={'Longitude (degrees W)': 'longitude'}, inplace=True)
     #create the datetime column for merging with environmental/other datasets
     zooplankton_data_trimmed['time'] = [datetime(
                                         x[1]['Year'], 
